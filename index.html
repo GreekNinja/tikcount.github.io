@@ -1,262 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok Stats With Free Counter</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
+const axios = require('axios');
 
-        h1 {
-            color: #333;
-        }
+// TikTok API request options
+const tiktokOptions = {
+  method: 'GET',
+  url: 'https://tiktok.livecounts.io/video/stats/7326276358487739681',
+  headers: {
+    'Accept': '*/*',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'If-None-Match': 'W/"62-x08NcgFIf5DLoDdQvaz3cG4B2Y8"',
+    'Origin': 'https://tokcounter.com',
+    'Referer': 'https://tokcounter.com/',
+    'Sec-Fetch-Dest': 'empty',
+    'Sec-Fetch-Mode': 'cors',
+    'Sec-Fetch-Site': 'cross-site',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 OPR/105.0.0.0',
+  },
+};
 
-        label {
-            margin-bottom: 10px;
-            color: #555;
-            display: none; /* Hide the label */
-        }
+// Your Discord Webhook URL
+const discordWebhookUrl = 'https://discord.com/api/webhooks/1192150497856069784/CceF5VG4p_MVqp64sO7bDR8TB3_xUasjLk_u48lJzjhdh_MoqDFmtq5TLSisPlBq3RIU';
 
-        input, button {
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
+// Function to create a detailed embed with cool text and timestamp
+function createDetailedEmbed(data) {
+  const coolText = '**Cool**';
+  const additionalDetails = `Here's some ${coolText} data from TikTok. More details: ${JSON.stringify(data)}`;
 
-        button {
-            background-color: #4CAF50;
-            color: white;
-            cursor: pointer;
-        }
+  return {
+    embeds: [{
+      title: 'Detailed TikTok Data',
+      description: additionalDetails,
+      color: 0x3498db, // Blue color
+      timestamp: new Date(),
+    }],
+  };
+}
 
-        button:hover {
-            background-color: #45a049;
-        }
+// Function to fetch data from TikTok and send it to Discord
+function fetchDataAndSendToDiscord() {
+  axios(tiktokOptions)
+    .then((response) => {
+      const data = response.data;
+      // Process the data as needed
+      console.log('Detailed TikTok data:', data);
 
-        #result {
-            background-color: #fff;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transition: opacity 0.5s ease-in-out;
-            opacity: 1; /* Initial opacity */
-        }
+      // Send the data to Discord webhook with a detailed embed
+      axios.post(discordWebhookUrl, createDetailedEmbed(data))
+        .then(() => {
+          console.log('Data sent to Discord successfully.');
+        })
+        .catch((error) => {
+          console.error('Error sending data to Discord:', error.message);
+        });
+    })
+    .catch((error) => {
+      console.error('Error fetching data from TikTok:', error.message);
+    });
+}
 
-        .profile-icon {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            margin-bottom: 10px;
-        }
+// Set up the interval to fetch data and send to Discord every 5 seconds
+const intervalId = setInterval(fetchDataAndSendToDiscord, 5000);
 
-        #timer {
-            margin-top: 10px;
-            font-size: 18px;
-            color: #555;
-        }
-
-        #doneMessage {
-            color: #4CAF50;
-            font-weight: bold;
-            margin-top: 10px;
-            opacity: 0;
-            transition: opacity 1s ease-in-out;
-        }
-
-        .fade-out {
-            opacity: 0 !important;
-        }
-
-        .loading-spinner {
-            border: 8px solid #f3f3f3; /* Light grey */
-            border-top: 8px solid #3498db; /* Blue */
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
-</head>
-<body>
-
-    <h1>TikTok User Stats With User Name. By @GreekNinja30</h1>
-
-    <!-- Remove the label and keep the input placeholder -->
-    <input type="text" id="usernameInput" placeholder="Username" onkeydown="if (event.keyCode === 13) searchUser()">
-    <button onclick="searchUser()">Search</button>
-
-    <div id="result"></div>
-    <div id="timer"></div>
-    <div id="doneMessage">Done!</div>
-
-    <script>
-        let timerInterval;
-        let previousUsername = '';
-        let lastFetchTime = 0;
-
-        function searchUser() {
-            const username = document.getElementById('usernameInput').value;
-            const apiUrl = `https://mixerno.space/api/tiktok-user-counter/user/${username}`;
-
-            // Calculate time since last fetch
-            const currentTime = new Date().getTime();
-            const timeSinceLastFetch = currentTime - lastFetchTime;
-
-            // If the time since last fetch is less than 1000ms (1 second), ignore the click
-            if (timeSinceLastFetch < 1000) {
-                return;
-            }
-
-            // Stop the existing timer
-            clearInterval(timerInterval);
-
-            // Apply fade-out animation only if the username is different from the previous one
-            if (username !== previousUsername) {
-                const resultContainer = document.getElementById('result');
-                resultContainer.innerHTML = '<div class="loading-spinner"></div>';
-                resultContainer.classList.add('fade-out');
-
-                setTimeout(() => {
-                    // Remove fade-out class to make it visible again
-                    resultContainer.classList.remove('fade-out');
-
-                    fetch(apiUrl)
-                        .then(response => {
-                            if (!response.ok) {
-                                if (response.status === 404) {
-                                    throw new Error('Invalid Username. Please try again.');
-                                } else {
-                                    throw new Error(`Failed to fetch data. Status: ${response.status} ${response.statusText}`);
-                                }
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            if (isValidResponse(data)) {
-                                displayUserData(data);
-                            } else {
-                                throw new Error('Invalid response format. Please try again.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error fetching data:', error.message);
-                            resultContainer.innerHTML = `<p>${error.message}</p>`;
-                        });
-                }, 500); // Wait for the fade-out animation to complete (adjust timing as needed)
-            } else {
-                // If the username is the same, proceed without the fade-out animation
-                fetch(apiUrl)
-                    .then(response => {
-                        if (!response.ok) {
-                            if (response.status === 404) {
-                                throw new Error('Invalid Username. Please try again.');
-                            } else {
-                                throw new Error(`Failed to fetch data. Status: ${response.status} ${response.statusText}`);
-                            }
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (isValidResponse(data)) {
-                            displayUserData(data);
-                        } else {
-                            throw new Error('Invalid response format. Please try again.');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching data:', error.message);
-                        resultContainer.innerHTML = `<p>${error.message}</p>`;
-                    });
-            }
-
-            // Update the previous username and last fetch time
-            previousUsername = username;
-            lastFetchTime = currentTime;
-        }
-
-        function isValidResponse(data) {
-            return data && data.counts && data.user;
-        }
-
-        function displayUserData(userData) {
-            const resultContainer = document.getElementById('result');
-            const doneMessage = document.getElementById('doneMessage');
-            const timerElement = document.getElementById('timer');
-
-            // Format numbers with commas
-            const formatNumber = (number) => {
-                return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-            };
-
-            // Find the follower count
-            const followerCount = formatNumber(userData.counts.find(count => count.value === 'followers').count);
-
-            // Display follower count prominently
-            resultContainer.innerHTML = `<div>
-                                            <h2>Follower Count: ${followerCount}</h2>
-                                            <img src="${userData.user.find(user => user.value === 'pfp').count}" alt="TikTok Profile Picture" class="profile-icon">
-                                        </div>
-                                        <div>
-                                            <h2>Other Counts</h2>
-                                            <p>Likes: ${formatNumber(userData.counts.find(count => count.value === 'likes').count)}</p>
-                                            <p>Following: ${formatNumber(userData.counts.find(count => count.value === 'following').count)}</p>
-                                            <p>Videos: ${formatNumber(userData.counts.find(count => count.value === 'videos').count)}</p>
-                                            <p>Goal: ${formatNumber(userData.counts.find(count => count.value === 'goal').count)}</p>
-                                        </div>
-                                        <div>
-                                            <h2>User Information</h2>
-                                            <p>Name: ${userData.user.find(user => user.value === 'name').count}</p>
-                                        </div>`;
-
-            // Update the timer
-            updateTimer();
-
-            // Show "Done" message with animation
-            doneMessage.style.opacity = 1;
-            setTimeout(() => {
-                doneMessage.style.opacity = 0;
-            }, 3000); // Hide after 3 seconds
-        }
-
-        function updateTimer() {
-            let secondsRemaining = 10;
-            const timerElement = document.getElementById('timer');
-
-            function update() {
-                timerElement.textContent = `Next refresh in ${secondsRemaining} seconds`;
-                secondsRemaining--;
-
-                if (secondsRemaining < 0) {
-                    clearInterval(timerInterval); // Clear existing timer
-                    searchUser(); // Start a new search
-                }
-            }
-
-            update(); // Initial call
-            timerInterval = setInterval(update, 1000); // Update every second
-        }
-
-        // Initial search on page load
-        searchUser();
-    </script>
-
-</body>
-</html>
+// Stop the interval after a specific time (e.g., 60 seconds in this example)
+setTimeout(() => {
+  clearInterval(intervalId);
+  console.log('Interval stopped. Cool stuff!');
+}, 60000000); // Stop after 60 seconds
