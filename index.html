@@ -97,7 +97,7 @@
 </head>
 <body>
 
-    <h1>TikTok User Counter. By GreekNinja30</h1>
+    <h1>TikTok User Counter</h1>
 
     <!-- Remove the label and keep the input placeholder -->
     <input type="text" id="usernameInput" placeholder="Username" onkeydown="if (event.keyCode === 13) searchUser()">
@@ -138,21 +138,21 @@
                     // Remove fade-out class to make it visible again
                     resultContainer.classList.remove('fade-out');
 
-                    if (username.trim() === '') {
-                        // If no username is provided, display information for predefined TikTok users
-                        displayPredefinedUsers();
+                    // Check if the device is in portrait orientation
+                    if (window.innerHeight > window.innerWidth) {
+                        pauseSiteUntilOrientationChange();
                     } else {
-                        // Fetch data for the entered username
+                        // If not, proceed with the search
                         fetchUserData(apiUrl);
                     }
                 }, 500); // Wait for the fade-out animation to complete (adjust timing as needed)
             } else {
                 // If the username is the same, proceed without the fade-out animation
-                if (username.trim() === '') {
-                    // If no username is provided, display information for predefined TikTok users
-                    displayPredefinedUsers();
+                // Check if the device is in portrait orientation
+                if (window.innerHeight > window.innerWidth) {
+                    pauseSiteUntilOrientationChange();
                 } else {
-                    // Fetch data for the entered username
+                    // If not, proceed with the search
                     fetchUserData(apiUrl);
                 }
             }
@@ -160,6 +160,31 @@
             // Update the previous username and last fetch time
             previousUsername = username;
             lastFetchTime = currentTime;
+        }
+
+        function pauseSiteUntilOrientationChange() {
+            const resultContainer = document.getElementById('result');
+            const timerElement = document.getElementById('timer');
+
+            resultContainer.innerHTML = '<p>Please rotate your device to landscape mode to continue.</p>';
+            timerElement.textContent = '';
+
+            // Listen for orientation change event
+            window.addEventListener('orientationchange', resumeSiteOnOrientationChange);
+        }
+
+        function resumeSiteOnOrientationChange() {
+            const resultContainer = document.getElementById('result');
+            const timerElement = document.getElementById('timer');
+
+            resultContainer.innerHTML = '<div class="loading-spinner"></div>';
+            // Remove the orientation change event listener
+            window.removeEventListener('orientationchange', resumeSiteOnOrientationChange);
+
+            // Continue with the search
+            const username = document.getElementById('usernameInput').value;
+            const apiUrl = `https://mixerno.space/api/tiktok-user-counter/user/${username}`;
+            fetchUserData(apiUrl);
         }
 
         function fetchUserData(apiUrl) {
@@ -250,22 +275,6 @@
 
         function isValidResponse(data) {
             return data && data.counts && data.user;
-        }
-
-        function displayPredefinedUsers() {
-            // Display information for predefined TikTok users
-            const predefinedUsers = [
-                'charlidamelio',
-                'addisonre',
-                'zachking',
-                'lorengray',
-                'spencerx'
-            ];
-
-            const randomUser = predefinedUsers[Math.floor(Math.random() * predefinedUsers.length)];
-            const apiUrl = `https://mixerno.space/api/tiktok-user-counter/user/${randomUser}`;
-
-            fetchUserData(apiUrl);
         }
 
         // Initial search on page load
