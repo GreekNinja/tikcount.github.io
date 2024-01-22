@@ -94,9 +94,12 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Landscape Mode Only */
-        @media screen and (max-aspect-ratio: 1/1) {
-            body {
+        @media (orientation: portrait) {
+            #landscapeWarning {
+                display: block;
+            }
+
+            #content {
                 display: none;
             }
         }
@@ -104,15 +107,21 @@
 </head>
 <body>
 
-    <h1>TikTok User Counter</h1>
+    <div id="landscapeWarning">
+        <p>Please rotate your device to landscape mode to use this site.</p>
+    </div>
 
-    <!-- Remove the label and keep the input placeholder -->
-    <input type="text" id="usernameInput" placeholder="Username" onkeydown="if (event.keyCode === 13) searchUser()">
-    <button onclick="searchUser()">Search</button>
+    <div id="content">
+        <h1>TikTok User Counter</h1>
 
-    <div id="result"></div>
-    <div id="timer"></div>
-    <div id="doneMessage">Done!</div>
+        <!-- Remove the label and keep the input placeholder -->
+        <input type="text" id="usernameInput" placeholder="Username" onkeydown="if (event.keyCode === 13) searchUser()">
+        <button onclick="searchUser()">Search</button>
+
+        <div id="result"></div>
+        <div id="timer"></div>
+        <div id="doneMessage">Done!</div>
+    </div>
 
     <script>
         let timerInterval;
@@ -145,24 +154,22 @@
                     // Remove fade-out class to make it visible again
                     resultContainer.classList.remove('fade-out');
 
-                    // Check if the device is in landscape orientation
-                    if (window.innerHeight <= window.innerWidth) {
-                        // If yes, proceed with the search
-                        fetchUserData(apiUrl);
-                    } else {
-                        // If not, pause the site
+                    // Check if the device is in portrait orientation
+                    if (window.innerHeight > window.innerWidth) {
                         pauseSiteUntilOrientationChange();
+                    } else {
+                        // If not, proceed with the search
+                        fetchUserData(apiUrl);
                     }
                 }, 500); // Wait for the fade-out animation to complete (adjust timing as needed)
             } else {
                 // If the username is the same, proceed without the fade-out animation
-                // Check if the device is in landscape orientation
-                if (window.innerHeight <= window.innerWidth) {
-                    // If yes, proceed with the search
-                    fetchUserData(apiUrl);
-                } else {
-                    // If not, pause the site
+                // Check if the device is in portrait orientation
+                if (window.innerHeight > window.innerWidth) {
                     pauseSiteUntilOrientationChange();
+                } else {
+                    // If not, proceed with the search
+                    fetchUserData(apiUrl);
                 }
             }
 
@@ -177,23 +184,6 @@
 
             resultContainer.innerHTML = '<p>Please rotate your device to landscape mode to continue.</p>';
             timerElement.textContent = '';
-
-            // Listen for orientation change event
-            window.addEventListener('orientationchange', resumeSiteOnOrientationChange);
-        }
-
-        function resumeSiteOnOrientationChange() {
-            const resultContainer = document.getElementById('result');
-            const timerElement = document.getElementById('timer');
-
-            resultContainer.innerHTML = '<div class="loading-spinner"></div>';
-            // Remove the orientation change event listener
-            window.removeEventListener('orientationchange', resumeSiteOnOrientationChange);
-
-            // Continue with the search
-            const username = document.getElementById('usernameInput').value;
-            const apiUrl = `https://mixerno.space/api/tiktok-user-counter/user/${username}`;
-            fetchUserData(apiUrl);
         }
 
         function fetchUserData(apiUrl) {
