@@ -93,6 +93,10 @@
             animation: countUp 1s ease-in-out;
         }
 
+        .mobile-animation .count-animation {
+            animation: countUpMobile 1s ease-in-out;
+        }
+
         @keyframes countUp {
             from {
                 transform: scale(1.5);
@@ -101,6 +105,17 @@
             to {
                 transform: scale(1);
                 color: #333;
+            }
+        }
+
+        @keyframes countUpMobile {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
             }
         }
 
@@ -220,15 +235,15 @@
 
             // Display follower count prominently with count animation
             resultContainer.innerHTML = `<div class="count-animation">
-                                            <h2>Follower Count: ${followerCount}</h2>
+                                            <h2>Follower Count: <span id="followerCount">${followerCount}</span></h2>
                                             <img src="${userData.user.find(user => user.value === 'pfp').count}" alt="TikTok Profile Picture" class="profile-icon">
                                         </div>
                                         <div>
                                             <h2>Other Counts</h2>
-                                            <p class="count-animation">Likes: ${formatNumber(userData.counts.find(count => count.value === 'likes').count)}</p>
-                                            <p class="count-animation">Following: ${formatNumber(userData.counts.find(count => count.value === 'following').count)}</p>
-                                            <p class="count-animation">Videos: ${formatNumber(userData.counts.find(count => count.value === 'videos').count)}</p>
-                                            <p class="count-animation">Goal: ${formatNumber(userData.counts.find(count => count.value === 'goal').count)}</p>
+                                            <p class="count-animation">Likes: <span id="likesCount">${formatNumber(userData.counts.find(count => count.value === 'likes').count)}</span></p>
+                                            <p class="count-animation">Following: <span id="followingCount">${formatNumber(userData.counts.find(count => count.value === 'following').count)}</span></p>
+                                            <p class="count-animation">Videos: <span id="videosCount">${formatNumber(userData.counts.find(count => count.value === 'videos').count)}</span></p>
+                                            <p class="count-animation">Goal: <span id="goalCount">${formatNumber(userData.counts.find(count => count.value === 'goal').count)}</span></p>
                                         </div>
                                         <div>
                                             <h2>User Information</h2>
@@ -243,6 +258,25 @@
             setTimeout(() => {
                 doneMessage.style.opacity = 0;
             }, 3000); // Hide after 3 seconds
+
+            // Check for number changes and add animation class
+            checkNumberChange('followerCount', followerCount);
+            checkNumberChange('likesCount', userData.counts.find(count => count.value === 'likes').count);
+            checkNumberChange('followingCount', userData.counts.find(count => count.value === 'following').count);
+            checkNumberChange('videosCount', userData.counts.find(count => count.value === 'videos').count);
+            checkNumberChange('goalCount', userData.counts.find(count => count.value === 'goal').count);
+        }
+
+        function checkNumberChange(elementId, newValue) {
+            const element = document.getElementById(elementId);
+            const currentNumber = element.innerText.replace(/,/g, ''); // Remove commas for comparison
+
+            if (currentNumber !== newValue) {
+                element.classList.add('count-animation');
+                setTimeout(() => {
+                    element.classList.remove('count-animation');
+                }, 1000); // Duration of the countUp animation
+            }
         }
 
         function updateTimer() {
