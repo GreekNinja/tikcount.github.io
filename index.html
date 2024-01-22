@@ -126,6 +126,7 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.5s ease-in-out;
+            backdrop-filter: blur(5px); /* Apply blur to content behind the error */
         }
 
         #errorContainer.active {
@@ -145,7 +146,13 @@
             margin-bottom: 20px;
         }
 
-        #retryButton {
+        #errorReason {
+            font-size: 16px;
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        #acknowledgeButton {
             padding: 10px 20px;
             background-color: #3498db;
             color: white;
@@ -155,7 +162,7 @@
             font-size: 16px;
         }
 
-        #retryButton:hover {
+        #acknowledgeButton:hover {
             background-color: #2980b9;
         }
     </style>
@@ -165,12 +172,12 @@
     <div id="errorContainer">
         <div id="errorIcon">⚠️</div>
         <div id="errorMessage">Error fetching data. Please check your internet connection and try again.</div>
-        <button id="retryButton" onclick="retrySearch()">Retry</button>
+        <div id="errorReason"></div>
+        <button id="acknowledgeButton" onclick="acknowledgeError()">OK</button>
     </div>
 
     <h1>TikTok User Counter</h1>
 
-    <!-- Remove the label and keep the input placeholder -->
     <input type="text" id="usernameInput" placeholder="Username" onkeydown="if (event.keyCode === 13) searchUser()">
     <button onclick="searchUser()">Search</button>
 
@@ -233,6 +240,11 @@
             lastFetchTime = currentTime;
         }
 
+        function acknowledgeError() {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.classList.remove('active');
+        }
+
         function retrySearch() {
             const errorContainer = document.getElementById('errorContainer');
             errorContainer.classList.remove('active');
@@ -243,12 +255,13 @@
             const resultContainer = document.getElementById('result');
             const doneMessage = document.getElementById('doneMessage');
             const errorContainer = document.getElementById('errorContainer');
+            const errorReasonElement = document.getElementById('errorReason');
 
             fetch(apiUrl)
                 .then(response => {
                     if (!response.ok) {
                         if (response.status === 404) {
-                            throw new Error('Invalid Username. Please try again.');
+                            throw new Error('Invalid Username. Please enter a valid TikTok username.');
                         } else {
                             throw new Error(`Failed to fetch data. Status: ${response.status} ${response.statusText}`);
                         }
@@ -266,6 +279,8 @@
                     console.error('Error fetching data:', error.message);
                     resultContainer.innerHTML = '';
                     errorContainer.classList.add('active');
+                    document.getElementById('errorMessage').innerText = 'Error fetching data.';
+                    errorReasonElement.innerText = error.message;
                 });
         }
 
