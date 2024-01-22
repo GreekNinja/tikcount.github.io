@@ -165,22 +165,6 @@
         #acknowledgeButton:hover {
             background-color: #2980b9;
         }
-
-        #pauseButton {
-            padding: 10px 20px;
-            background-color: #008000;
-            color: white;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            margin-top: 10px;
-            display: none; /* Initially hide the pause button */
-        }
-
-        #pauseButton:hover {
-            background-color: #008000;
-        }
     </style>
 </head>
 <body>
@@ -349,7 +333,6 @@
 
             // Hide error container if visible
             errorContainer.classList.remove('active');
-
         }
 
         function checkNumberChange(elementId, newValue) {
@@ -367,15 +350,14 @@
         function updateTimer() {
             let secondsRemaining = 10;
             const timerElement = document.getElementById('timer');
-            const pauseButton = document.getElementById('pauseButton');
 
             function update() {
                 timerElement.textContent = `Next refresh in ${secondsRemaining} seconds ⏰`;
                 secondsRemaining--;
 
                 if (secondsRemaining < 0) {
-                    clearInterval(timerInterval);
-                    pauseButton.style.display = 'block'; // Display the pause button
+                    clearInterval(timerInterval); // Clear existing timer
+                    searchUser(); // Start a new search
                 }
             }
 
