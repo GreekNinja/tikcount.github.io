@@ -93,6 +93,13 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Landscape Mode Only */
+        @media screen and (max-aspect-ratio: 1/1) {
+            body {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -138,22 +145,24 @@
                     // Remove fade-out class to make it visible again
                     resultContainer.classList.remove('fade-out');
 
-                    // Check if the device is in portrait orientation
-                    if (window.innerHeight > window.innerWidth) {
-                        pauseSiteUntilOrientationChange();
-                    } else {
-                        // If not, proceed with the search
+                    // Check if the device is in landscape orientation
+                    if (window.innerHeight <= window.innerWidth) {
+                        // If yes, proceed with the search
                         fetchUserData(apiUrl);
+                    } else {
+                        // If not, pause the site
+                        pauseSiteUntilOrientationChange();
                     }
                 }, 500); // Wait for the fade-out animation to complete (adjust timing as needed)
             } else {
                 // If the username is the same, proceed without the fade-out animation
-                // Check if the device is in portrait orientation
-                if (window.innerHeight > window.innerWidth) {
-                    pauseSiteUntilOrientationChange();
-                } else {
-                    // If not, proceed with the search
+                // Check if the device is in landscape orientation
+                if (window.innerHeight <= window.innerWidth) {
+                    // If yes, proceed with the search
                     fetchUserData(apiUrl);
+                } else {
+                    // If not, pause the site
+                    pauseSiteUntilOrientationChange();
                 }
             }
 
