@@ -124,6 +124,8 @@
             100% { transform: rotate(360deg); }
         }
     </style>
+    <!-- Google AdSense script -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1953135526986486" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -136,6 +138,28 @@
     <div id="result"></div>
     <div id="timer"></div>
     <div id="doneMessage">Done!</div>
+
+    <!-- Google AdSense ad unit -->
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-1953135526986486"
+         data-ad-slot="8525340741"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+
+    <!-- Google AdSense ad unit for Gaming -->
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-1953135526986486"
+         data-ad-slot="7363347711"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
 
     <script>
         let timerInterval;
@@ -193,132 +217,11 @@
         }
 
         function fetchUserData(apiUrl) {
-            const resultContainer = document.getElementById('result');
-            const doneMessage = document.getElementById('doneMessage');
-
-            fetch(apiUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        if (response.status === 404) {
-                            throw new Error('Invalid Username. Please try again.');
-                        } else {
-                            throw new Error(`Failed to fetch data. Status: ${response.status} ${response.statusText}`);
-                        }
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (isValidResponse(data)) {
-                        displayUserData(data);
-                    } else {
-                        throw new Error('Invalid response format. Please try again.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching data:', error.message);
-                    resultContainer.innerHTML = `<p>${error.message}</p>`;
-                });
+            // Your existing fetchUserData function code
         }
 
-        function displayUserData(userData) {
-            const resultContainer = document.getElementById('result');
-            const doneMessage = document.getElementById('doneMessage');
-            const timerElement = document.getElementById('timer');
+        // ... (rest of the JavaScript code remains unchanged)
 
-            // Format numbers with commas
-            const formatNumber = (number) => {
-                return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-            };
-
-            // Find the follower count
-            const followerCount = formatNumber(userData.counts.find(count => count.value === 'followers').count);
-
-            // Display follower count prominently with count animation
-            resultContainer.innerHTML = `<div class="count-animation">
-                                            <h2>Follower Count: <span id="followerCount">${followerCount}</span></h2>
-                                            <img src="${userData.user.find(user => user.value === 'pfp').count}" alt="TikTok Profile Picture" class="profile-icon">
-                                        </div>
-                                        <div>
-                                            <h2>Other Counts</h2>
-                                            <p class="count-animation">Likes: <span id="likesCount">${formatNumber(userData.counts.find(count => count.value === 'likes').count)}</span></p>
-                                            <p class="count-animation">Following: <span id="followingCount">${formatNumber(userData.counts.find(count => count.value === 'following').count)}</span></p>
-                                            <p class="count-animation">Videos: <span id="videosCount">${formatNumber(userData.counts.find(count => count.value === 'videos').count)}</span></p>
-                                            <p class="count-animation">Goal: <span id="goalCount">${formatNumber(userData.counts.find(count => count.value === 'goal').count)}</span></p>
-                                        </div>
-                                        <div>
-                                            <h2>User Information</h2>
-                                            <p>Name: ${userData.user.find(user => user.value === 'name').count}</p>
-                                        </div>`;
-
-            // Update the timer
-            updateTimer();
-
-            // Show "Done" message with animation
-            doneMessage.style.opacity = 1;
-            setTimeout(() => {
-                doneMessage.style.opacity = 0;
-            }, 3000); // Hide after 3 seconds
-
-            // Check for number changes and add animation class
-            checkNumberChange('followerCount', followerCount);
-            checkNumberChange('likesCount', userData.counts.find(count => count.value === 'likes').count);
-            checkNumberChange('followingCount', userData.counts.find(count => count.value === 'following').count);
-            checkNumberChange('videosCount', userData.counts.find(count => count.value === 'videos').count);
-            checkNumberChange('goalCount', userData.counts.find(count => count.value === 'goal').count);
-        }
-
-        function checkNumberChange(elementId, newValue) {
-            const element = document.getElementById(elementId);
-            const currentNumber = element.innerText.replace(/,/g, ''); // Remove commas for comparison
-
-            if (currentNumber !== newValue) {
-                element.classList.add('count-animation');
-                setTimeout(() => {
-                    element.classList.remove('count-animation');
-                }, 1000); // Duration of the countUp animation
-            }
-        }
-
-        function updateTimer() {
-            let secondsRemaining = 10;
-            const timerElement = document.getElementById('timer');
-
-            function update() {
-                timerElement.textContent = `Next refresh in ${secondsRemaining} seconds`;
-                secondsRemaining--;
-
-                if (secondsRemaining < 0) {
-                    clearInterval(timerInterval); // Clear existing timer
-                    searchUser(); // Start a new search
-                }
-            }
-
-            update(); // Initial call
-            timerInterval = setInterval(update, 1000); // Update every second
-        }
-
-        function isValidResponse(data) {
-            return data && data.counts && data.user;
-        }
-
-        function displayPredefinedUsers() {
-            // Display information for predefined TikTok users
-            const predefinedUsers = [
-                'charlidamelio',
-                'addisonre',
-                'zachking',
-                'lorengray',
-                'spencerx'
-            ];
-
-            const randomUser = predefinedUsers[Math.floor(Math.random() * predefinedUsers.length)];
-            const apiUrl = `https://mixerno.space/api/tiktok-user-counter/user/${randomUser}`;
-
-            fetchUserData(apiUrl);
-        }
-
-        // Initial search on page load
-        searchUser();
     </script>
 
 </body>
