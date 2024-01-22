@@ -120,7 +120,7 @@
 
     <div id="result"></div>
     <div id="timer"></div>
-    <div id="doneMessage">Done!</div>
+    <div id="doneMessage">Done! 🎉</div>
 
     <script>
         let timerInterval;
@@ -220,19 +220,19 @@
 
             // Display follower count prominently with count animation
             resultContainer.innerHTML = `<div class="count-animation">
-                                            <h2>Follower Count: <span id="followerCount">${followerCount}</span></h2>
+                                            <h2>Follower Count: <span id="followerCount">${followerCount}</span> 🚀</h2>
                                             <img src="${userData.user.find(user => user.value === 'pfp').count}" alt="TikTok Profile Picture" class="profile-icon">
                                         </div>
                                         <div>
                                             <h2>Other Counts</h2>
-                                            <p class="count-animation">Likes: <span id="likesCount">${formatNumber(userData.counts.find(count => count.value === 'likes').count)}</span></p>
-                                            <p class="count-animation">Following: <span id="followingCount">${formatNumber(userData.counts.find(count => count.value === 'following').count)}</span></p>
-                                            <p class="count-animation">Videos: <span id="videosCount">${formatNumber(userData.counts.find(count => count.value === 'videos').count)}</span></p>
-                                            <p class="count-animation">Goal: <span id="goalCount">${formatNumber(userData.counts.find(count => count.value === 'goal').count)}</span></p>
+                                            <p class="count-animation">Likes: <span id="likesCount">${formatNumber(userData.counts.find(count => count.value === 'likes').count)}</span> ❤️</p>
+                                            <p class="count-animation">Following: <span id="followingCount">${formatNumber(userData.counts.find(count => count.value === 'following').count)}</span> 👥</p>
+                                            <p class="count-animation">Videos: <span id="videosCount">${formatNumber(userData.counts.find(count => count.value === 'videos').count)}</span> 🎥</p>
+                                            <p class="count-animation">Goal: <span id="goalCount">${formatNumber(userData.counts.find(count => count.value === 'goal').count)}</span> 🎯</p>
                                         </div>
                                         <div>
                                             <h2>User Information</h2>
-                                            <p>Name: ${userData.user.find(user => user.value === 'name').count}</p>
+                                            <p>Name: ${userData.user.find(user => user.value === 'name').count} 👤</p>
                                         </div>`;
 
             // Update the timer
@@ -269,7 +269,7 @@
             const timerElement = document.getElementById('timer');
 
             function update() {
-                timerElement.textContent = `Next refresh in ${secondsRemaining} seconds`;
+                timerElement.textContent = `Next refresh in ${secondsRemaining} seconds ⏰`;
                 secondsRemaining--;
 
                 if (secondsRemaining < 0) {
