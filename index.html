@@ -157,23 +157,17 @@
         .stat-value {
             font-size: 1.8rem;
             font-weight: 600;
-            line-height: 1.2; /* Important for animation */
+            line-height: 1.2;
         }
         
-        /* -- Animation Classes -- */
         .stat-value.animate-up,
         .stat-value.animate-down {
             animation-duration: 0.5s;
             animation-fill-mode: forwards;
         }
         
-        .stat-value.animate-up {
-            animation-name: countUp;
-        }
-
-        .stat-value.animate-down {
-            animation-name: countDown;
-        }
+        .stat-value.animate-up { animation-name: countUp; }
+        .stat-value.animate-down { animation-name: countDown; }
 
         @keyframes countUp {
             0% { transform: translateY(100%); opacity: 0; color: var(--green-glow); }
@@ -187,12 +181,6 @@
             100% { transform: translateY(0); opacity: 1; color: var(--text-primary); }
         }
         
-        #timer {
-            margin-top: 20px;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
         .loader {
             width: 50px;
             height: 50px;
@@ -203,9 +191,7 @@
             margin: 100px auto;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
         
         .error-message {
             background-color: var(--surface-color);
@@ -215,16 +201,35 @@
             border: 1px solid var(--red-glow);
         }
         
-        footer {
-            position: absolute;
-            bottom: 10px;
-            color: #555;
-            font-size: 12px;
+        #timer-container {
+            margin-top: 20px;
+            width: 100%;
+            visibility: hidden; 
         }
-        footer a {
-            color: var(--primary-color);
-            text-decoration: none;
+        #timer-container.visible {
+            visibility: visible;
         }
+        #timer-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+        #timer-bar-background {
+            height: 8px;
+            width: 100%;
+            background-color: var(--surface-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        #timer-bar-progress {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 4px;
+            transition: width 1s linear;
+        }
+
     </style>
 </head>
 <body>
@@ -238,19 +243,22 @@
         </div>
 
         <div id="result"></div>
-        <div id="timer"></div>
+        
+        <div id="timer-container">
+            <span id="timer-text"></span>
+            <div id="timer-bar-background">
+                <div id="timer-bar-progress"></div>
+            </div>
+        </div>
     </div>
-    
-    <footer>
-        <p>Code enhanced by Gemini | Original by <a href="https://twitter.com/GreekNinja30" target="_blank" rel="noopener">@GreekNinja30</a></p>
-    </footer>
 
     <script>
         // --- STATE MANAGEMENT ---
         let refreshInterval;
         let countdownInterval;
         let currentData = null;
-        const REFRESH_RATE = 10000; // 10 seconds in ms
+        let currentUsername = null;
+        const REFRESH_RATE = 10000; 
 
         const PREDEFINED_USERS = [
             'charlidamelio', 'khaby.lame', 'bellapoarch', 'addisonre',
@@ -261,22 +269,21 @@
         // --- UI RENDERING FUNCTIONS ---
         const renderLoader = () => {
             document.getElementById('result').innerHTML = '<div class="loader"></div>';
-            document.getElementById('timer').textContent = '';
+            document.getElementById('timer-container').classList.remove('visible');
         };
 
         const renderError = (message) => {
             document.getElementById('result').innerHTML = `<div class="user-card error-message">${message}</div>`;
+             document.getElementById('timer-container').classList.remove('visible');
         };
 
-        const renderFullCard = (data) => {
+        const renderFullCard = (data, username) => {
             const user = data.user.reduce((acc, item) => ({ ...acc, [item.value]: item.count }), {});
             const counts = data.counts.reduce((acc, item) => ({ ...acc, [item.value]: item.count }), {});
             
             const formattedCounts = {
-                followers: formatNumber(counts.followers),
-                likes: formatNumber(counts.likes),
-                following: formatNumber(counts.following),
-                videos: formatNumber(counts.videos)
+                followers: formatNumber(counts.followers), likes: formatNumber(counts.likes),
+                following: formatNumber(counts.following), videos: formatNumber(counts.videos)
             };
 
             const cardHTML = `
@@ -284,7 +291,7 @@
                     <div class="user-header">
                         <img src="${user.pfp}" alt="Profile Picture" class="profile-pic">
                         <div class="user-name">${user.name}</div>
-                        <div class="user-username">@${user.username}</div>
+                        <div class="user-username">@${username}</div>
                     </div>
                     <div class="stats-grid">
                         <div class="stat-item">
@@ -304,8 +311,7 @@
                             <div class="stat-value" data-stat="videos">${formattedCounts.videos}</div>
                         </div>
                     </div>
-                </div>
-            `;
+                </div>`;
             document.getElementById('result').innerHTML = cardHTML;
         };
 
@@ -316,34 +322,43 @@
             Object.keys(newCounts).forEach(statKey => {
                 const element = document.querySelector(`[data-stat="${statKey}"]`);
                 if (!element) return;
-
                 const oldValue = parseInt(oldCounts[statKey] || 0);
                 const newValue = parseInt(newCounts[statKey] || 0);
-
                 if (oldValue !== newValue) {
                     const direction = newValue > oldValue ? 'up' : 'down';
                     animateNumber(element, formatNumber(newValue), direction);
                 }
             });
         };
-
+        
         const updateTimer = () => {
             clearInterval(countdownInterval);
+            const timerContainer = document.getElementById('timer-container');
+            const timerText = document.getElementById('timer-text');
+            const progressBar = document.getElementById('timer-bar-progress');
+            
+            timerContainer.classList.add('visible');
             let secondsRemaining = REFRESH_RATE / 1000;
-            const timerElement = document.getElementById('timer');
+            
+            progressBar.style.transition = 'none';
+            progressBar.style.width = '100%';
+            setTimeout(() => {
+                progressBar.style.transition = 'width 1s linear';
+            }, 20);
 
             const tick = () => {
-                timerElement.textContent = `Next refresh in ${secondsRemaining}s...`;
+                timerText.textContent = `Next refresh in ${secondsRemaining}s...`;
+                const percentage = (secondsRemaining / (REFRESH_RATE / 1000)) * 100;
+                progressBar.style.width = `${percentage}%`;
+                
                 secondsRemaining--;
                 if (secondsRemaining < 0) {
                     clearInterval(countdownInterval);
                 }
             };
-
             tick();
             countdownInterval = setInterval(tick, 1000);
         };
-
 
         // --- LOGIC & EVENT HANDLERS ---
         const handleSearch = () => {
@@ -352,24 +367,17 @@
                 username = PREDEFINED_USERS[Math.floor(Math.random() * PREDEFINED_USERS.length)];
                 document.getElementById('usernameInput').value = username;
             }
-            
-            // Clear old intervals and reset state if username is new
-            const currentUsername = currentData?.user?.find(u => u.value === 'username')?.count;
             if (username !== currentUsername) {
-                currentData = null; // Force a full card re-render
-                clearInterval(refreshInterval);
-                clearInterval(countdownInterval);
+                currentData = null; currentUsername = username;
+                clearInterval(refreshInterval); clearInterval(countdownInterval);
                 renderLoader();
             }
-            
             fetchUserData(username);
         };
 
         const fetchUserData = async (username) => {
-            // Prevent multiple fetches running for the same user
             clearInterval(refreshInterval);
             const apiUrl = `https://mixerno.space/api/tiktok-user-counter/user/${username}`;
-            
             try {
                 const response = await fetch(apiUrl);
                 if (!response.ok) {
@@ -377,45 +385,56 @@
                     throw new Error(`API error: ${response.statusText} (${response.status})`);
                 }
                 const data = await response.json();
-                
                 if (currentData) {
                     updateStats(data);
                 } else {
-                    renderFullCard(data);
+                    renderFullCard(data, username);
+                }
+                currentData = data;
+                
+                // --- UPDATE URL LOGIC ---
+                const currentUrlParams = new URLSearchParams(window.location.search);
+                if (currentUrlParams.get('user') !== username) {
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.set('user', username);
+                    // Use replaceState to avoid cluttering browser history with every refresh
+                    history.pushState({ username: username }, '', newUrl);
                 }
                 
-                currentData = data;
                 updateTimer();
                 refreshInterval = setInterval(() => fetchUserData(username), REFRESH_RATE);
-
             } catch (error) {
                 console.error('Fetch Error:', error);
                 renderError(error.message);
-                clearInterval(refreshInterval);
-                clearInterval(countdownInterval);
-                 document.getElementById('timer').textContent = '';
+                clearInterval(refreshInterval); clearInterval(countdownInterval);
+                currentUsername = null;
             }
         };
 
         const animateNumber = (element, newValue, direction) => {
             const animationClass = `animate-${direction}`;
-            
-            // The 'animationend' event listener ensures the class is removed after one animation cycle.
             element.addEventListener('animationend', () => {
                 element.classList.remove(animationClass);
             }, { once: true });
-
             element.classList.add(animationClass);
             element.textContent = newValue;
         };
         
-        const formatNumber = (num) => {
-            return new Intl.NumberFormat('en-US').format(num);
+        const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
+
+        // --- UPDATED INITIALIZATION FUNCTION ---
+        const initializeApp = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userFromUrl = urlParams.get('user');
+
+            if (userFromUrl) {
+                document.getElementById('usernameInput').value = userFromUrl;
+            }
+            
+            handleSearch();
         };
 
-        // --- INITIALIZATION ---
-        window.onload = handleSearch;
-
+        window.onload = initializeApp;
     </script>
 </body>
 </html>
